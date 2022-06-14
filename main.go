@@ -1,7 +1,7 @@
 package main
 
 import (
-	"todo_go/config"
+  "go-todo/config"
 )
 
 func main () {

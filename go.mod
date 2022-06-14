@@ -1,12 +1,8 @@
-module myapp
+module go-todo
 
 go 1.18
 
-replace github.com/config => ../config
-
-require github.com/config v0.0.0
-
-replace github.com/utils => ../utils
-
-require github.com/utils v0.0.0
-
+require (
+	github.com/mattn/go-sqlite3 v1.14.13 // indirect
+	gopkg.in/go-ini/ini.v1 v1.66.6 // indirect
+)
