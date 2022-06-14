@@ -4,6 +4,7 @@ import (
 	"log"
 
 	"gopkg.in/go-ini/ini.v1"
+	"../utils"
 )
 
 type ConfigList struct {
@@ -14,6 +15,11 @@ type ConfigList struct {
 }
 
 var Config ConfigList
+
+func init () {
+	LoadConfig()
+	utils.LoggingSettings(Congig.LogFile)
+}
 
 func LoadConfig() {
 	cfg, err := ini.Load("config.ini")

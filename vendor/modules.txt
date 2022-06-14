@@ -1,0 +1,6 @@
+# github.com/config v0.0.0 => ../config
+## explicit
+# github.com/utils v0.0.0 => ../utils
+## explicit
+# github.com/config => ../config
+# github.com/utils => ../utils
