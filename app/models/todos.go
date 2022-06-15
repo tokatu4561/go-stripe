@@ -100,9 +100,20 @@ func (u *User) GetTodosByUser() (todos []Todo, err error) {
 }
 
 func (t *Todo) UpdateTodo() (err error) {
-	cmd := `update users set content = ?, user_id = ? where id = ?`
+	cmd := `update todos set content = ?, user_id = ? where id = ?`
 
 	_, err = DB.Exec(cmd, t.Content, t.UserID ,t.ID)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	return err
+}
+
+func (t *Todo) DeleteTodo() (err error) {
+	cmd := `delete from todos where id = ?`
+
+	_, err = DB.Exec(cmd, t.ID)
 	if err != nil {
 		log.Fatalln(err)
 	}
