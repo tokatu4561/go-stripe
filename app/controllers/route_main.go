@@ -1,11 +1,14 @@
 package controllers
 
 import (
-	"html/template"
 	"net/http"
 )
 
 func top(w http.ResponseWriter, r *http.Request) {
-	t, _ := template.ParseFiles("app/views/templates/top.html")
-	t.Execute(w, nil)
+	// _, err := session(w, r)
+	// if err != nil {
+		generateHTML(w, nil, "layout", "public_navbar", "top")
+	// } else {
+	// 	http.Redirect(w, r, "/todos", 302)
+	// }
 }

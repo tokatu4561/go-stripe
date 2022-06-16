@@ -1,7 +1,7 @@
 package main
 
 import (
-  "go-todo/app/models"
+  // "go-todo/app/models"
   "go-todo/app/controllers"
 )
 
