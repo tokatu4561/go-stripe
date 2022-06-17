@@ -1,101 +1,99 @@
 package controllers
 
-// import (
-// 	"log"
-// 	"net/http"
+import (
+	"log"
+	"net/http"
 
-// 	"go-todo/app/models"
-// )
+	"go-todo/app/models"
+)
 
-// func signup(w http.ResponseWriter, r *http.Request) {
-// 	/*
-// 		if r.Method == "GET" {
-// 			_, err := session(w, r)
-// 			if err != nil {
-// 				generateHTML(w, nil, "layout", "public_navbar", "signup")
-// 			} else {
-// 				http.Redirect(w, r, "/todos", 302)
-// 			}
-// 		} else if r.Method == "POST" {
-// 			err := r.ParseForm()
-// 			if err != nil {
-// 				log.Println(err)
-// 			}
-// 			user := models.User{
-// 				Name:     r.PostFormValue("name"),
-// 				Email:    r.PostFormValue("email"),
-// 				PassWord: r.PostFormValue("password"),
-// 			}
-// 			if err := user.CreateUser(); err != nil {
-// 				log.Println(err)
-// 			}
+func signup(w http.ResponseWriter, r *http.Request) {
+		if r.Method == "GET" {
+	
+			// if err != nil {
+				generateHTML(w, nil, "layout", "public_navbar", "signup")
+			// } else {
+			// 	http.Redirect(w, r, "/todos", 302)
+			// }
+		} else if r.Method == "POST" {
+			err := r.ParseForm()
+			if err != nil {
+				log.Println(err)
+			}
+			user := models.User{
+				Name:     r.PostFormValue("name"),
+				Email:    r.PostFormValue("email"),
+				Password: r.PostFormValue("password"),
+			}
+			if err := user.CreateUser(); err != nil {
+				log.Println(err)
+			}
 
-// 			http.Redirect(w, r, "/", 302)
-// 		}
-// 	*/
+			http.Redirect(w, r, "/", 302)
+		}
 
-// 	switch r.Method {
-// 	case http.MethodGet:
-// 		_, err := session(w, r)
-// 		if err != nil {
-// 			generateHTML(w, nil, "layout", "public_navbar", "signup")
-// 		} else {
-// 			http.Redirect(w, r, "/todos", 302)
-// 		}
-// 	case http.MethodPost:
-// 		err := r.ParseForm()
-// 		if err != nil {
-// 			log.Println(err)
-// 		}
-// 		user := models.User{
-// 			Name:     r.PostFormValue("name"),
-// 			Email:    r.PostFormValue("email"),
-// 			PassWord: r.PostFormValue("password"),
-// 		}
-// 		if err := user.CreateUser(); err != nil {
-// 			log.Println(err)
-// 		}
+	// switch r.Method {
+	// case http.MethodGet:
+	// 	_, err := session(w, r)
+	// 	if err != nil {
+	// 		generateHTML(w, nil, "layout", "public_navbar", "signup")
+	// 	} else {
+	// 		http.Redirect(w, r, "/todos", 302)
+	// 	}
+	// case http.MethodPost:
+	// 	err := r.ParseForm()
+	// 	if err != nil {
+	// 		log.Println(err)
+	// 	}
+	// 	user := models.User{
+	// 		Name:     r.PostFormValue("name"),
+	// 		Email:    r.PostFormValue("email"),
+	// 		PassWord: r.PostFormValue("password"),
+	// 	}
+	// 	if err := user.CreateUser(); err != nil {
+	// 		log.Println(err)
+	// 	}
 
-// 		http.Redirect(w, r, "/", 302)
-// 	}
-// }
+	// 	http.Redirect(w, r, "/", 302)
+	// }
+}
 
-// func login(w http.ResponseWriter, r *http.Request) {
-// 	_, err := session(w, r)
-// 	if err != nil {
-// 		generateHTML(w, nil, "layout", "public_navbar", "login")
-// 	} else {
-// 		http.Redirect(w, r, "/todos", 302)
-// 	}
-// }
+func login(w http.ResponseWriter, r *http.Request) {
+	// _, err := session(w, r)
+	// if err != nil {
+		generateHTML(w, nil, "layout", "public_navbar", "login")
+	// } else {
+	// 	http.Redirect(w, r, "/todos", 302)
+	// }
+}
 
-// func authenticate(w http.ResponseWriter, r *http.Request) {
-// 	err := r.ParseForm()
-// 	if err != nil {
-// 		log.Println(err)
+func authenticate(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+	if err != nil {
+		log.Println(err)
 
-// 	}
-// 	user, err := models.GetUserByEmail(r.PostFormValue("email"))
-// 	if err != nil {
-// 		log.Println(err)
-// 		http.Redirect(w, r, "/login", 302)
-// 	}
-// 	if user.PassWord == models.Encrypt(r.PostFormValue("password")) {
-// 		session, err := user.CreateSession()
-// 		if err != nil {
-// 			log.Println(err)
-// 		}
-// 		cookie := http.Cookie{
-// 			Name:     "_cookie",
-// 			Value:    session.UUID,
-// 			HttpOnly: true,
-// 		}
-// 		http.SetCookie(w, &cookie)
-// 		http.Redirect(w, r, "/", 302)
-// 	} else {
-// 		http.Redirect(w, r, "/login", 302)
-// 	}
-// }
+	}
+	user, err := models.GetUserByEmail(r.PostFormValue("email"))
+	if err != nil {
+		log.Println(err)
+		http.Redirect(w, r, "/login", 302)
+	}
+	if user.Password == models.Encrypt(r.PostFormValue("password")) {
+		session, err := user.CreateSession()
+		if err != nil {
+			log.Println(err)
+		}
+		cookie := http.Cookie{
+			Name:     "_cookie",
+			Value:    session.UUID,
+			HttpOnly: true,
+		}
+		http.SetCookie(w, &cookie)
+		http.Redirect(w, r, "/", 302)
+	} else {
+		http.Redirect(w, r, "/login", 302)
+	}
+}
 
 // func logout(writer http.ResponseWriter, request *http.Request) {
 // 	cookie, err := request.Cookie("_cookie")

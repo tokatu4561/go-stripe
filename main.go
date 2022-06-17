@@ -1,10 +1,13 @@
 package main
 
 import (
-  // "go-todo/app/models"
+  "fmt"
+
+  "go-todo/app/models"
   "go-todo/app/controllers"
 )
 
 func main () {
+  fmt.Println(models.DB)
 	controllers.StartMainSerever()
 }
