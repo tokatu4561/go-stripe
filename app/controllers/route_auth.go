@@ -95,14 +95,14 @@ func authenticate(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// func logout(writer http.ResponseWriter, request *http.Request) {
-// 	cookie, err := request.Cookie("_cookie")
-// 	if err != nil {
-// 		log.Println(err)
-// 	}
-// 	if err != http.ErrNoCookie {
-// 		session := models.Session{UUID: cookie.Value}
-// 		session.DeleteSessionByUUID()
-// 	}
-// 	http.Redirect(writer, request, "/login", 302)
-// }
+func logout(writer http.ResponseWriter, request *http.Request) {
+	cookie, err := request.Cookie("_cookie")
+	if err != nil {
+		log.Println(err)
+	}
+	if err != http.ErrNoCookie {
+		session := models.Session{UUID: cookie.Value}
+		session.DeleteSessionByUUID()
+	}
+	http.Redirect(writer, request, "/login", 302)
+}
