@@ -1,9 +1,8 @@
-module go-todo
+module myapp
 
-go 1.18
+go 1.16
 
 require (
-	github.com/google/uuid v1.3.0 // indirect
-	github.com/mattn/go-sqlite3 v1.14.13 // indirect
-	gopkg.in/go-ini/ini.v1 v1.66.6 // indirect
+	github.com/go-chi/chi/v5 v5.0.3 // indirect
+	github.com/stripe/stripe-go/v72 v72.51.0 // indirect
 )
