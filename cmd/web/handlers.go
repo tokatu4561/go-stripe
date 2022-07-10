@@ -1,6 +1,9 @@
 package main
 
-import "net/http"
+import (
+	"myapp/internal/models"
+	"net/http"
+)
 
 // VirtualTerminal displays the virtual terminal page
 func (app *application) VirtualTerminal(w http.ResponseWriter, r *http.Request) {
@@ -9,12 +12,12 @@ func (app *application) VirtualTerminal(w http.ResponseWriter, r *http.Request) 
 
 	if err := app.renderTemplate(w, r, "terminal", &templateData{
 		StringMap: stringMap,
-	}); err != nil {
+	}, "stripe-js"); err != nil {
 		app.errorLog.Println(err)
 	}
 }
 
-// PaymentSucceeded displays the receipt page
+// 決済成功後の明細画面を表示させる
 func (app *application) PaymentSucceeded(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
@@ -22,7 +25,7 @@ func (app *application) PaymentSucceeded(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	// read posted data
+	// postデータ読み込み
 	cardHolder := r.Form.Get("cardholder_name")
 	email := r.Form.Get("email")
 	paymentIntent := r.Form.Get("payment_intent")
@@ -43,6 +46,27 @@ func (app *application) PaymentSucceeded(w http.ResponseWriter, r *http.Request)
 	if err := app.renderTemplate(w, r, "succeeded", &templateData{
 		Data: data,
 	}); err != nil {
+		app.errorLog.Println(err)
+	}
+}
+
+// ChargeOnce displays the page to buy one widget
+func (app *application) ChargeOnce(w http.ResponseWriter, r *http.Request) {
+
+	widget := models.Widget{
+		ID: 1,
+		Name: "Custom Widget",
+		Description: "A very nice widget",
+		InventoryLevel: 10,
+		Price: 1000,
+	}
+
+	data := make(map[string]interface{})
+	data["widget"] = widget
+
+	if err := app.renderTemplate(w, r, "buy-once", &templateData{
+		Data: data,
+	}, "stripe-js"); err != nil {
 		app.errorLog.Println(err)
 	}
 }
