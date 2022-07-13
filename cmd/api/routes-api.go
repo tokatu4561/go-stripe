@@ -22,7 +22,7 @@ func (app *application) routes() http.Handler {
 
 	mux.Get("/api/widget/{id}", app.GetWidgetByID)
 
-	mux.Get("/api/authnticate", app.CreateAuthToken)
+	mux.Post("/api/authenticate", app.CreateAuthToken)
 
 	mux.Post("/api/create-customer-and-subscribe-to-plan", app.CreateCustomerAndSubscribeToPlan)
 
