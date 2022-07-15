@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"strconv"
 	"time"
+	"fmt"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/stripe/stripe-go/v72"
@@ -272,15 +273,27 @@ func (app *application) CreateAuthToken(w http.ResponseWriter, r *http.Request) 
 	}
 	
 	// generate the token
+	token, err := models.GenerateToken(user.ID, 24*time.Hour, models.ScopeAuthentication)
+	if err != nil {
+		app.badRequest(w, r, err)
+		return
+	}
 
-	// send response
+	// save to database
+	err = app.DB.InsertToken(token, user)
+	if err != nil {
+		app.badRequest(w, r, err)
+		return
+	}
 
 	var payload struct {
 		Error bool `json:"error"`
 		Message string `json:"message"`
+		Token   *models.Token `json:"authentication_token"`
 	}
 	payload.Error = false
-	payload.Message = "Success!"
+	payload.Message = fmt.Sprintf("token for %s created", userInput.Email)
+	payload.Token = token
 
 	_ = app.writeJSON(w, http.StatusOK, payload)
 }
