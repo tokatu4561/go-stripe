@@ -3,8 +3,8 @@ package models
 import (
 	"context"
 	"database/sql"
-	"time"
 	"strings"
+	"time"
 )
 
 // DBModel is the type for database connection values
@@ -239,6 +239,7 @@ func (m *DBModel) InsertCustomer(c Customer) (int, error) {
 	return int(id), nil
 }
 
+// GetUserByEmail gets a user by email address
 func (m *DBModel) GetUserByEmail(email string) (User, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
