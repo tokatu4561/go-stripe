@@ -24,11 +24,13 @@ type config struct {
 		key    string
 	}
 	smtp struct {
-		host string
-		port int
+		host     string
+		port     int
 		username string
 		password string
 	}
+	secretkey string
+	frontend string
 }
 
 type application struct {
@@ -61,9 +63,11 @@ func main() {
 	flag.StringVar(&cfg.env, "env", "development", "Application environment {development|production|maintenance}")
 	flag.StringVar(&cfg.db.dsn, "dsn", "mariadb:password@tcp(localhost:3306)/widgets?parseTime=true&tls=false", "DSN")
 	flag.StringVar(&cfg.smtp.host, "smtphost", "smtp.mailtrap.io", "smtp host")
-	flag.StringVar(&cfg.smtp.username, "smtpuser", "df1231f1b6615a", "smtp user")
-	flag.StringVar(&cfg.smtp.password, "smtppass", "4cabbc30e6e7bb", "smtp password")
+	flag.StringVar(&cfg.smtp.username, "smtpuser", "30980d8770302b02e", "smtp user")
+	flag.StringVar(&cfg.smtp.password, "smtppass", "33c58457afcc76", "smtp password")
 	flag.IntVar(&cfg.smtp.port, "smtpport", 587, "smtp port")
+	flag.StringVar(&cfg.secretkey, "secret", "adeefdad44fdsafdsa", "secret key")
+	flag.StringVar(&cfg.frontend, "frontend", "http://localhost:4000", "url to front end")
 
 	flag.Parse()
 
@@ -84,7 +88,7 @@ func main() {
 		infoLog:  infoLog,
 		errorLog: errorLog,
 		version:  version,
-		DB: models.DBModel{DB: conn},
+		DB:       models.DBModel{DB: conn},
 	}
 
 	err = app.serve()
