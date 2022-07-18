@@ -352,6 +352,14 @@ func (app *application) ShowResetPassword(w http.ResponseWriter, r *http.Request
 		return
 	}
 
+	//　有効期限の確認
+	expired := signer.Expired(testURL, 60)
+	if expired {
+		app.errorLog.Println("Invalid url - tampering detected")
+		return
+	}
+
+
 	data := make(map[string]interface{})
 	data["email"] = r.URL.Query().Get("email")
 
