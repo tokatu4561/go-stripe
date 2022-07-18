@@ -23,6 +23,12 @@ type config struct {
 		secret string
 		key    string
 	}
+	smtp struct {
+		host string
+		port int
+		username string
+		password string
+	}
 }
 
 type application struct {
@@ -54,6 +60,11 @@ func main() {
 	flag.IntVar(&cfg.port, "port", 4001, "Server port to listen on")
 	flag.StringVar(&cfg.env, "env", "development", "Application environment {development|production|maintenance}")
 	flag.StringVar(&cfg.db.dsn, "dsn", "mariadb:password@tcp(localhost:3306)/widgets?parseTime=true&tls=false", "DSN")
+	flag.StringVar(&cfg.smtp.host, "smtphost", "smtp.mailtrap.io", "smtp host")
+	flag.StringVar(&cfg.smtp.username, "smtpuser", "df1231f1b6615a", "smtp user")
+	flag.StringVar(&cfg.smtp.password, "smtppass", "4cabbc30e6e7bb", "smtp password")
+	flag.IntVar(&cfg.smtp.port, "smtpport", 587, "smtp port")
+
 	flag.Parse()
 
 	cfg.stripe.key = os.Getenv("STRIPE_KEY")
