@@ -27,12 +27,16 @@ func (app *application) routes() http.Handler {
 	mux.Post("/api/authenticate", app.CreateAuthToken)
 	mux.Post("/api/is-authenticated", app.CheckAuthentication)
 	mux.Post("/api/forgot-password", app.SendPasswordResetEmail)
-	mux.Post("/api/rest-password", app.SendPasswordResetEmail)
+	mux.Post("/api/reset-password", app.ResetPassword)
 
 	mux.Route("/api/admin", func(mux chi.Router) {
 		mux.Use(app.Auth)
 
 		mux.Post("/virtual-terminal-succeeded", app.VirtualTerminalPaymentSucceeded)
+		mux.Post("/all-sales", app.AllSales)
+		mux.Post("/all-subscriptions", app.AllSubscriptions)
+
+		mux.Post("/get-sale/{id}", app.GetSale)
 
 	})
 

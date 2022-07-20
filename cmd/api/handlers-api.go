@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"myapp/internal/cards"
+	"myapp/internal/encryption"
 	"myapp/internal/models"
 	"myapp/internal/urlsigner"
 	"net/http"
@@ -12,10 +13,9 @@ import (
 	"strings"
 	"time"
 
-	"golang.org/x/crypto/bcrypt"
-
 	"github.com/go-chi/chi/v5"
 	"github.com/stripe/stripe-go/v72"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type stripePayload struct {
@@ -40,6 +40,7 @@ type jsonResponse struct {
 	ID      int    `json:"id,omitempty"`
 }
 
+// GetPaymentIntent gets a payment intent, and returns json (or error json)
 func (app *application) GetPaymentIntent(w http.ResponseWriter, r *http.Request) {
 	var payload stripePayload
 
@@ -122,8 +123,6 @@ func (app *application) CreateCustomerAndSubscribeToPlan(w http.ResponseWriter, 
 		app.errorLog.Println(err)
 		return
 	}
-
-	app.infoLog.Println(data.Email, data.LastFour, data.PaymentMethod, data.Plan)
 
 	card := cards.Card{
 		Secret:   app.config.stripe.secret,
@@ -246,6 +245,7 @@ func (app *application) SaveOrder(order models.Order) (int, error) {
 	return id, nil
 }
 
+// CreateAuthToken creates and sends an auth token, if user supplies valid information
 func (app *application) CreateAuthToken(w http.ResponseWriter, r *http.Request) {
 	var userInput struct {
 		Email    string `json:"email"`
@@ -305,6 +305,7 @@ func (app *application) CreateAuthToken(w http.ResponseWriter, r *http.Request) 
 	_ = app.writeJSON(w, http.StatusOK, payload)
 }
 
+// authenticateToken checks an auth token for validity
 func (app *application) authenticateToken(r *http.Request) (*models.User, error) {
 	authorizationHeader := r.Header.Get("Authorization")
 	if authorizationHeader == "" {
@@ -330,6 +331,7 @@ func (app *application) authenticateToken(r *http.Request) (*models.User, error)
 	return user, nil
 }
 
+// CheckAuthentication checks auth status
 func (app *application) CheckAuthentication(w http.ResponseWriter, r *http.Request) {
 	// validate the token, and get associated user
 	user, err := app.authenticateToken(r)
@@ -348,6 +350,7 @@ func (app *application) CheckAuthentication(w http.ResponseWriter, r *http.Reque
 	app.writeJSON(w, http.StatusOK, payload)
 }
 
+// VirtualTerminalPaymentSucceeded displays a page with receipt information
 func (app *application) VirtualTerminalPaymentSucceeded(w http.ResponseWriter, r *http.Request) {
 	var txnData struct {
 		PaymentAmount   int    `json:"amount"`
@@ -371,7 +374,7 @@ func (app *application) VirtualTerminalPaymentSucceeded(w http.ResponseWriter, r
 
 	card := cards.Card{
 		Secret: app.config.stripe.secret,
-		Key: app.config.stripe.key,
+		Key:    app.config.stripe.key,
 	}
 
 	pi, err := card.RetrievePaymentIntent(txnData.PaymentIntent)
@@ -390,15 +393,15 @@ func (app *application) VirtualTerminalPaymentSucceeded(w http.ResponseWriter, r
 	txnData.ExpiryMonth = int(pm.Card.ExpMonth)
 	txnData.ExpiryYear = int(pm.Card.ExpYear)
 
-	txn := models.Transaction {
-		Amount: txnData.PaymentAmount,
-		Currency: txnData.PaymentCurrency,
-		LastFour: txnData.LastFour,
-		ExpiryMonth: txnData.ExpiryMonth,
-		ExpiryYear: txnData.ExpiryYear,
-		PaymentIntent: txnData.PaymentIntent,
-		PaymentMethod: txnData.PaymentMethod,
-		BankReturnCode: pi.Charges.Data[0].ID,
+	txn := models.Transaction{
+		Amount:              txnData.PaymentAmount,
+		Currency:            txnData.PaymentCurrency,
+		LastFour:            txnData.LastFour,
+		ExpiryMonth:         txnData.ExpiryMonth,
+		ExpiryYear:          txnData.ExpiryYear,
+		PaymentIntent:       txnData.PaymentIntent,
+		PaymentMethod:       txnData.PaymentMethod,
+		BankReturnCode:      pi.Charges.Data[0].ID,
 		TransactionStatusID: 2,
 	}
 
@@ -411,6 +414,7 @@ func (app *application) VirtualTerminalPaymentSucceeded(w http.ResponseWriter, r
 	app.writeJSON(w, http.StatusOK, txn)
 }
 
+// SendPasswordResetEmail sends an email with a signed url to allow user to reset password
 func (app *application) SendPasswordResetEmail(w http.ResponseWriter, r *http.Request) {
 	var payload struct {
 		Email string `json:"email"`
@@ -426,7 +430,7 @@ func (app *application) SendPasswordResetEmail(w http.ResponseWriter, r *http.Re
 	_, err = app.DB.GetUserByEmail(payload.Email)
 	if err != nil {
 		var resp struct {
-			Error bool `json:"error"`
+			Error   bool   `json:"error"`
 			Message string `json:"message"`
 		}
 		resp.Error = true
@@ -437,7 +441,7 @@ func (app *application) SendPasswordResetEmail(w http.ResponseWriter, r *http.Re
 
 	link := fmt.Sprintf("%s/reset-password?email=%s", app.config.frontend, payload.Email)
 
-	sign := urlsigner.Signer {
+	sign := urlsigner.Signer{
 		Secret: []byte(app.config.secretkey),
 	}
 
@@ -458,7 +462,7 @@ func (app *application) SendPasswordResetEmail(w http.ResponseWriter, r *http.Re
 	}
 
 	var resp struct {
-		Error bool `json:"error"`
+		Error   bool   `json:"error"`
 		Message string `json:"message"`
 	}
 
@@ -467,9 +471,10 @@ func (app *application) SendPasswordResetEmail(w http.ResponseWriter, r *http.Re
 	app.writeJSON(w, http.StatusCreated, resp)
 }
 
+// ResetPassword resets a user's password in the database
 func (app *application) ResetPassword(w http.ResponseWriter, r *http.Request) {
 	var payload struct {
-		Email string `json:"email"`
+		Email    string `json:"email"`
 		Password string `json:"password"`
 	}
 
@@ -479,7 +484,17 @@ func (app *application) ResetPassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := app.DB.GetUserByEmail(payload.Email)
+	encyrptor := encryption.Encryption{
+		Key: []byte(app.config.secretkey),
+	}
+
+	realEmail, err := encyrptor.Decrypt(payload.Email)
+	if err != nil {
+		app.badRequest(w, r, err)
+		return
+	}
+
+	user, err := app.DB.GetUserByEmail(realEmail)
 	if err != nil {
 		app.badRequest(w, r, err)
 		return
@@ -498,12 +513,49 @@ func (app *application) ResetPassword(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var resp struct {
-		Error bool `json:"error"`
+		Error   bool   `json:"error"`
 		Message string `json:"message"`
 	}
-
 	resp.Error = false
-	resp.Message = "password chenged"
+	resp.Message = "password changed"
 
-	app.writeJSON(w, http.StatusOK, resp)
+	app.writeJSON(w, http.StatusCreated, resp)
+}
+
+// AllSales returns all sales as a slice
+func (app *application) AllSales(w http.ResponseWriter, r *http.Request) {
+	allSales, err := app.DB.GetAllOrders()
+	if err != nil {
+		app.badRequest(w, r, err)
+		return
+	}
+
+	app.writeJSON(w, http.StatusOK, allSales)
+}
+
+// AllSubscriptions returns all subscriptions as a slice
+func (app *application) AllSubscriptions(w http.ResponseWriter, r *http.Request) {
+	// get all sales from database
+
+	allSales, err := app.DB.GetAllSubscriptions()
+	if err != nil {
+		app.badRequest(w, r, err)
+		return
+	}
+
+	app.writeJSON(w, http.StatusOK, allSales)
+}
+
+// GetSale returns one sale as json, by id
+func (app *application) GetSale(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	orderID, _ := strconv.Atoi(id)
+
+	order, err := app.DB.GetOrderByID(orderID)
+	if err != nil {
+		app.badRequest(w, r, err)
+		return
+	}
+
+	app.writeJSON(w, http.StatusOK, order)
 }
